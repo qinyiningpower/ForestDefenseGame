@@ -77,7 +77,51 @@ public class Animal extends GameObject {
     // 具体图片绘制可以之后交给 UI 成员补
     @Override
     public void draw(GraphicsContext gc) {
-        // TODO: UI 绘图时可根据 imagePath 绘制动物图片
+        Color bodyColor;
+    
+        if (type == AnimalType.SQUIRREL) {
+            bodyColor = Color.web("#D99058");
+        } else if (type == AnimalType.HEDGEHOG) {
+            bodyColor = Color.web("#795548");
+        } else if (type == AnimalType.WOODPECKER) {
+            bodyColor = Color.web("#D94C4C");
+        } else if (type == AnimalType.FOX) {
+            bodyColor = Color.web("#E87532");
+        } else {
+            bodyColor = Color.web("#4FA3A5");
+        }
+    
+        double padding = 8;
+    
+        gc.setFill(bodyColor);
+        gc.fillRoundRect(
+                getX() + padding,
+                getY() + padding,
+                getWidth() - padding * 2,
+                getHeight() - padding * 2,
+                18,
+                18
+        );
+    
+        gc.setFill(Color.WHITE);
+        gc.fillText(
+                String.valueOf(type.name().charAt(0)),
+                getX() + getWidth() / 2 - 4,
+                getY() + getHeight() / 2 + 5
+        );
+    
+        double healthRatio = (double) hp / maxHp;
+    
+        gc.setFill(Color.web("#472F2F"));
+        gc.fillRect(getX() + 10, getY() + 4, getWidth() - 20, 5);
+    
+        gc.setFill(Color.web("#63C174"));
+        gc.fillRect(
+                getX() + 10,
+                getY() + 4,
+                (getWidth() - 20) * healthRatio,
+                5
+        );
     }
 
     // 每帧更新方法
