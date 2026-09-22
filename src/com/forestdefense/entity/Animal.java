@@ -1,5 +1,6 @@
 package com.forestdefense.entity;
 
+import javafx.scene.paint.Color;
 import com.forestdefense.base.AnimalType;
 import com.forestdefense.base.GameConstant;
 import com.forestdefense.base.GameObject;
