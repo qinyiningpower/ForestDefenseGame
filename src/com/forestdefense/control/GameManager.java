@@ -2,132 +2,103 @@ package com.forestdefense.control;
 
 import com.forestdefense.base.GameState;
 import com.forestdefense.logic.GameRule;
-import com.forestdefense.logic.WaveManager;
 import com.forestdefense.logic.ResourceManager;
-import com.forestdefense.ui.render.GameCanvas;
-import com.forestdefense.ui.render.GameAnimation;
+import com.forestdefense.logic.WaveManager;
 
 /**
- * 游戏总调度器（单例）
- * 整合所有模块，统一调度游戏流程
- * 
- * @author 成员5 负责实现
+ * Central coordinator for the game lifecycle.
+ *
+ * Manages game state and provides access to the core gameplay managers.
+ * Rendering and input components will be connected separately.
  */
-public class GameManager {
-    
-    private static GameManager instance;
-    
+public final class GameManager {
+
+    private static final GameManager INSTANCE = new GameManager();
+
     private GameState currentState;
-    private GameCanvas gameCanvas;
-    private GameAnimation gameAnimation;
     private GameRule gameRule;
     private WaveManager waveManager;
     private ResourceManager resourceManager;
-    private MouseControl mouseControl;
-    
+
     private GameManager() {
-        // TODO: 由成员5实现
-        // - 初始化所有Manager
-        //Initialize all the managers
-        this.resourceManager = new ResourceManager();
-        this.waveManager = new WaveManager();
-        this.gameRule = new GameRule();
-        this.gameAnimation = new GameAnimation();
-        this.mouseControl = new MouseControl();
-        // - 设置初始状态为READY
-        // Set the inital state to READY
-        this.currentState = GameState.READY;
+        initializeGameData();
     }
-    
-    public static GameManager getInstance() {
-        // TODO: 由成员5实现 - 单例模式（双重检查锁或饿汉式）
-        return instance;
-    }
-    
+
     /**
-     * 初始化游戏
-     * 重置所有数据，创建初始资源
+     * Returns the single GameManager instance.
+     */
+    public static GameManager getInstance() {
+        return INSTANCE;
+    }
+
+    /**
+     * Initializes all gameplay managers and restores the READY state.
      */
     public void initGame() {
-        // TODO: 由成员5实现
-        // 1. 重置ResourceManager（初始50果子）
-        // 2. 重置WaveManager
-        // 3. 重置所有实体列表
-        // 4. 在鸟巢位置创建Egg
-        // 5. 设置状态为READY
+        initializeGameData();
     }
-    
+
+    private void initializeGameData() {
+        gameRule = new GameRule();
+        waveManager = new WaveManager();
+        resourceManager = new ResourceManager();
+        currentState = GameState.READY;
+    }
+
     /**
-     * 开始游戏
-     * 从READY状态切换到RUNNING
+     * Starts a new game or continues from the ready state.
      */
     public void startGame() {
-        // TODO: 由成员5实现
-        // - 状态改为RUNNING
-        // - 启动GameAnimation
-        // - 通知各模块开始工作
+        if (currentState == GameState.READY) {
+            currentState = GameState.RUNNING;
+        }
     }
-    
+
     /**
-     * 暂停游戏
+     * Pauses the currently running game.
      */
     public void pauseGame() {
-        // TODO: 由成员5实现
-        // - 状态改为PAUSED
-        // - 暂停GameAnimation
+        if (currentState == GameState.RUNNING) {
+            currentState = GameState.PAUSED;
+        }
     }
-    
+
     /**
-     * 恢复游戏
+     * Resumes a paused game.
      */
     public void resumeGame() {
-        // TODO: 由成员5实现
-        // - 状态改为RUNNING
-        // - 恢复GameAnimation
+        if (currentState == GameState.PAUSED) {
+            currentState = GameState.RUNNING;
+        }
     }
-    
+
     /**
-     * 重置游戏
+     * Restores all managers and returns the game to its initial state.
      */
     public void resetGame() {
-        // TODO: 由成员5实现
-        // - 清空所有实体
-        // - 重置所有数值
-        // - 回到READY状态
+        initializeGameData();
     }
-    
+
     /**
-     * 开始游戏循环（帧刷新）
-     */
-    public void startGameLoop() {
-        // TODO: 由成员5实现
-        // - 创建并启动AnimationTimer
-    }
-    
-    /**
-     * 停止游戏循环
-     */
-    public void stopGameLoop() {
-        // TODO: 由成员5实现
-        // - 停止AnimationTimer
-    }
-    
-    /**
-     * 获取当前游戏状态
-     */
-    public GameState getCurrentState() {
-        // TODO: 由成员5实现
-        return currentState;
-    }
-    
-    /**
-     * 游戏结束处理
-     * @param isWin true=胜利, false=失败
+     * Changes the state to WIN or LOSE.
      */
     public void gameOver(boolean isWin) {
-        // TODO: 由成员5实现
-        // - 设置对应状态（WIN/LOSE）
-        // - 停止游戏循环
-        // - 显示结束提示
+        currentState = isWin ? GameState.WIN : GameState.LOSE;
+    }
+
+    public GameState getCurrentState() {
+        return currentState;
+    }
+
+    public GameRule getGameRule() {
+        return gameRule;
+    }
+
+    public WaveManager getWaveManager() {
+        return waveManager;
+    }
+
+    public ResourceManager getResourceManager() {
+        return resourceManager;
     }
 }
