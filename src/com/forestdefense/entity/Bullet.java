@@ -1,5 +1,6 @@
 package com.forestdefense.entity;
 
+import javafx.scene.paint.Color;
 import com.forestdefense.base.GameConstant;
 import com.forestdefense.base.GameObject;
 import com.forestdefense.base.GameUtil;
@@ -42,7 +43,12 @@ public class Bullet extends GameObject {
 
     @Override
     public void draw(GraphicsContext gc) {
-        // TODO: UI 绘图时可在这里绘制子弹
+        gc.setFill(Color.web("#FFD45C"));
+        gc.fillOval(getX(), getY(), getWidth(), getHeight());
+    
+        gc.setStroke(Color.web("#C78B23"));
+        gc.setLineWidth(1.5);
+        gc.strokeOval(getX(), getY(), getWidth(), getHeight());
     }
 
     @Override
