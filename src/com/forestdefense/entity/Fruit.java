@@ -1,5 +1,6 @@
 package com.forestdefense.entity;
 
+import javafx.scene.paint.Color;
 import com.forestdefense.base.GameConstant;
 import com.forestdefense.base.GameObject;
 import com.forestdefense.base.GameUtil;
@@ -46,9 +47,22 @@ public class Fruit extends GameObject {
         setAlive(active);
     }
 
-    @Override
+       @Override
     public void draw(GraphicsContext gc) {
-        // TODO: UI成员后续绘制果子
+        gc.setFill(Color.web("#E84C3D"));
+        gc.fillOval(getX(), getY(), getWidth(), getHeight());
+    
+        gc.setFill(Color.web("#5A8737"));
+        gc.fillOval(
+                getX() + getWidth() / 2,
+                getY() - 4,
+                8,
+                6
+        );
+    
+        gc.setStroke(Color.web("#8C2F27"));
+        gc.setLineWidth(1.5);
+        gc.strokeOval(getX(), getY(), getWidth(), getHeight());
     }
 
     @Override
