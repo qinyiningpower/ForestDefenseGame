@@ -1,66 +1,83 @@
 package com.forestdefense.ui.stage;
 
+import com.forestdefense.base.GameConstant;
+import com.forestdefense.ui.render.GameCanvas;
+
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 /**
- * 游戏主窗口
- * 封装Stage、Scene，管理所有UI控件
- * 
- * @author 成员2 负责实现
+ * Builds and manages the main JavaFX game window.
  */
-public class GameStage {
-    
-    private Stage stage;
+public final class GameStage {
+
+    private final Stage stage;
+
     private Scene scene;
-    private MenuBarUtil menuBar;
-    private ScorePanel scorePanel;
-    private AnimalButtonPanel animalPanel;
-    private com.forestdefense.ui.render.GameCanvas gameCanvas;
-    
+    private GameCanvas gameCanvas;
+
     public GameStage(Stage stage) {
         this.stage = stage;
-        // TODO: 由成员2实现 - 初始化各组件
     }
-    
+
     /**
-     * 初始化窗口
-     * 设置标题、大小、居中，创建Scene并添加所有UI组件
+     * Creates and displays the initial game interface.
      */
     public void init() {
-        // TODO: 由成员2实现
-        // 1. stage.setTitle("🌳 森林鸟蛋保卫战")
-        // 2. stage.setWidth(1200); stage.setHeight(800)
-        // 3. 创建VBox作为根布局
-        // 4. 添加menuBar、scorePanel、animalPanel、canvas
-        // 5. scene = new Scene(root)
-        // 6. stage.setScene(scene)
-        // 7. stage.setResizable(false)
-        // 8. stage.centerOnScreen()
+        Label title = new Label("Forest Defense Game");
+        title.setStyle(
+                "-fx-font-size: 32px;"
+                + "-fx-font-weight: bold;"
+                + "-fx-text-fill: #F4E9C9;"
+        );
+
+        Label subtitle = new Label(
+                "Protect the nest • Build defenses • Survive every wave"
+        );
+        subtitle.setStyle(
+                "-fx-font-size: 15px;"
+                + "-fx-text-fill: #BFD6C7;"
+        );
+
+        gameCanvas = new GameCanvas();
+
+        StackPane canvasContainer = new StackPane(gameCanvas);
+        canvasContainer.setPadding(new Insets(15));
+
+        VBox root = new VBox(
+                10,
+                title,
+                subtitle,
+                canvasContainer
+        );
+
+        root.setAlignment(Pos.CENTER);
+        root.setPadding(new Insets(25));
+        root.setStyle("-fx-background-color: #102F29;");
+
+        scene = new Scene(
+                root,
+                GameConstant.WINDOW_WIDTH,
+                GameConstant.WINDOW_HEIGHT
+        );
+
+        stage.setTitle("Forest Defense Game");
+        stage.setScene(scene);
+        stage.setResizable(false);
+        stage.centerOnScreen();
+        stage.show();
     }
-    
+
     public Scene getScene() {
-        // TODO: 由成员2实现
         return scene;
     }
-    
-    public MenuBarUtil getMenuBar() {
-        // TODO: 由成员2实现
-        return menuBar;
-    }
-    
-    public ScorePanel getScorePanel() {
-        // TODO: 由成员2实现
-        return scorePanel;
-    }
-    
-    public AnimalButtonPanel getAnimalPanel() {
-        // TODO: 由成员2实现
-        return animalPanel;
-    }
-    
-    public com.forestdefense.ui.render.GameCanvas getGameCanvas() {
-        // TODO: 由成员2实现
+
+    public GameCanvas getGameCanvas() {
         return gameCanvas;
     }
 }
