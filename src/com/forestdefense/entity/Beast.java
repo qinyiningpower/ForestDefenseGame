@@ -1,5 +1,6 @@
 package com.forestdefense.entity;
 
+import javafx.scene.paint.Color;
 import com.forestdefense.base.EnemyType;
 import com.forestdefense.base.GameConstant;
 import com.forestdefense.base.GameObject;
@@ -110,11 +111,56 @@ public class Beast extends GameObject {
         return !isAlive();
     }
 
-    // 绘制方法
-    // 具体图片绘制可以之后交给 UI 成员补
     @Override
     public void draw(GraphicsContext gc) {
-        // TODO: UI 绘图时可根据 imagePath 绘制敌人图片
+        Color bodyColor;
+    
+        if (type == EnemyType.SNAKE) {
+            bodyColor = Color.web("#6BAA45");
+        } else if (type == EnemyType.WOLF) {
+            bodyColor = Color.web("#66727A");
+        } else {
+            bodyColor = Color.web("#D06B32");
+        }
+    
+        double padding = 10;
+    
+        gc.setFill(bodyColor);
+        gc.fillOval(
+                getX() + padding,
+                getY() + padding,
+                getWidth() - padding * 2,
+                getHeight() - padding * 2
+        );
+    
+        gc.setStroke(Color.web("#3B2923"));
+        gc.setLineWidth(2);
+        gc.strokeOval(
+                getX() + padding,
+                getY() + padding,
+                getWidth() - padding * 2,
+                getHeight() - padding * 2
+        );
+    
+        gc.setFill(Color.WHITE);
+        gc.fillText(
+                String.valueOf(type.name().charAt(0)),
+                getX() + getWidth() / 2 - 4,
+                getY() + getHeight() / 2 + 5
+        );
+    
+        double healthRatio = (double) hp / maxHp;
+    
+        gc.setFill(Color.web("#472F2F"));
+        gc.fillRect(getX() + 10, getY() + 4, getWidth() - 20, 5);
+    
+        gc.setFill(Color.web("#E2574C"));
+        gc.fillRect(
+                getX() + 10,
+                getY() + 4,
+                (getWidth() - 20) * healthRatio,
+                5
+        );
     }
 
     // 每帧更新方法
