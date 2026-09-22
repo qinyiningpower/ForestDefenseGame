@@ -1,5 +1,6 @@
 package com.forestdefense.entity;
 
+import javafx.scene.paint.Color;
 import com.forestdefense.base.GameConstant;
 import com.forestdefense.base.GameObject;
 import com.forestdefense.base.GameUtil;
@@ -35,9 +36,37 @@ public class Trap extends GameObject {
         setAlive(active);
     }
 
-    @Override
+       @Override
     public void draw(GraphicsContext gc) {
-        // TODO: UI成员后续绘制陷阱
+        double x = getX();
+        double y = getY();
+        double width = getWidth();
+        double height = getHeight();
+    
+        gc.setFill(Color.web("#70513B"));
+        gc.fillRect(x, y + height * 0.65, width, height * 0.35);
+    
+        gc.setFill(Color.web("#D7D9D8"));
+    
+        double spikeWidth = width / 4.0;
+    
+        for (int i = 0; i < 4; i++) {
+            double startX = x + i * spikeWidth;
+    
+            gc.fillPolygon(
+                    new double[]{
+                            startX,
+                            startX + spikeWidth / 2,
+                            startX + spikeWidth
+                    },
+                    new double[]{
+                            y + height * 0.65,
+                            y,
+                            y + height * 0.65
+                    },
+                    3
+            );
+        }
     }
 
     @Override
