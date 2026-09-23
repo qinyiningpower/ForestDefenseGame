@@ -5,6 +5,10 @@ import com.forestdefense.logic.GameRule;
 import com.forestdefense.logic.GameWorld;
 import com.forestdefense.logic.ResourceManager;
 import com.forestdefense.logic.WaveManager;
+import com.forestdefense.base.AnimalType;
+import com.forestdefense.base.GameUtil;
+import com.forestdefense.entity.Animal;
+import com.forestdefense.entity.AnimalFactory;
 
 /**
  * Central coordinator for the game lifecycle.
@@ -87,6 +91,48 @@ public final class GameManager {
     public void gameOver(boolean isWin) {
         currentState = isWin ? GameState.WIN : GameState.LOSE;
     }
+    /**
+     * Attempts to place an animal in the selected grid cell.
+     *
+     * @return true when placement succeeds
+     */
+    public boolean placeAnimal(
+            AnimalType type,
+            int row,
+            int col) {
+    
+        if (type == null) {
+            return false;
+        }
+    
+        if (currentState == GameState.PAUSED
+                || currentState.isGameOver()) {
+            return false;
+        }
+    
+        if (!GameUtil.isValidGridPosition(row, col)) {
+            return false;
+        }
+    
+        // Column zero is reserved for the emergency traps.
+        if (col == 0) {
+            return false;
+        }
+    
+        if (gameWorld.isCellOccupied(row, col)) {
+            return false;
+        }
+    
+        Animal animal = AnimalFactory.create(type, row, col);
+    
+        if (!resourceManager.buyAnimal(animal)) {
+            return false;
+        }
+    
+        gameWorld.getAnimals().add(animal);
+    
+        return true;
+    }    
 
     public GameState getCurrentState() {
         return currentState;
