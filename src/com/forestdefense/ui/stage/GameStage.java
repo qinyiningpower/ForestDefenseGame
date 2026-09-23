@@ -23,6 +23,7 @@ public final class GameStage {
     private GameCanvas gameCanvas;
     private AnimalButtonPanel animalPanel;
     private MouseControl mouseControl;
+    private ScorePanel scorePanel;
 
     public GameStage(Stage stage) {
         this.stage = stage;
@@ -49,6 +50,23 @@ public final class GameStage {
                 + "-fx-text-fill: #BFD6C7;"
         );
 
+        scorePanel = new ScorePanel();
+
+        scorePanel.updateFruits(
+                gameManager.getResourceManager().getFruitCount()
+        );
+        
+        scorePanel.updateWave(
+                gameManager.getWaveManager().getCurrentWave(),
+                gameManager.getWaveManager().getMaxWave()
+        );
+        
+        scorePanel.updateKills(0);
+        scorePanel.updateStatus("Ready");
+        
+        scorePanel.updateEggStatus(
+                gameManager.getGameWorld().getEgg().isAlive()
+        );
         animalPanel = new AnimalButtonPanel();
 
         animalPanel.updateButtonsAvailability(
@@ -74,6 +92,7 @@ public final class GameStage {
                 10,
                 title,
                 subtitle,
+                scorePanel.getPanel(),
                 animalPanel.getPanel(),
                 canvasContainer
         );
@@ -108,5 +127,8 @@ public final class GameStage {
     }
     public MouseControl getMouseControl() {
         return mouseControl;
+    }
+    public ScorePanel getScorePanel() {
+        return scorePanel;
     }
 }
