@@ -1,5 +1,6 @@
 package com.forestdefense.ui.stage;
 
+import com.forestdefense.control.GameManager;
 import com.forestdefense.base.GameConstant;
 import com.forestdefense.ui.render.GameCanvas;
 
@@ -45,6 +46,9 @@ public final class GameStage {
         );
 
         gameCanvas = new GameCanvas();
+        gameCanvas.redraw(
+        GameManager.getInstance().getGameWorld()
+        );
 
         StackPane canvasContainer = new StackPane(gameCanvas);
         canvasContainer.setPadding(new Insets(15));
