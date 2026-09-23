@@ -1,7 +1,7 @@
 package com.forestdefense.ui.stage;
 
-import com.forestdefense.control.GameManager;
 import com.forestdefense.base.GameConstant;
+import com.forestdefense.control.GameManager;
 import com.forestdefense.ui.render.GameCanvas;
 
 import javafx.geometry.Insets;
@@ -21,6 +21,7 @@ public final class GameStage {
 
     private Scene scene;
     private GameCanvas gameCanvas;
+    private AnimalButtonPanel animalPanel;
 
     public GameStage(Stage stage) {
         this.stage = stage;
@@ -30,6 +31,8 @@ public final class GameStage {
      * Creates and displays the initial game interface.
      */
     public void init() {
+        GameManager gameManager = GameManager.getInstance();
+
         Label title = new Label("Forest Defense Game");
         title.setStyle(
                 "-fx-font-size: 32px;"
@@ -45,9 +48,16 @@ public final class GameStage {
                 + "-fx-text-fill: #BFD6C7;"
         );
 
+        animalPanel = new AnimalButtonPanel();
+
+        animalPanel.updateButtonsAvailability(
+                gameManager.getResourceManager().getFruitCount()
+        );
+
         gameCanvas = new GameCanvas();
+
         gameCanvas.redraw(
-        GameManager.getInstance().getGameWorld()
+                gameManager.getGameWorld()
         );
 
         StackPane canvasContainer = new StackPane(gameCanvas);
@@ -57,6 +67,7 @@ public final class GameStage {
                 10,
                 title,
                 subtitle,
+                animalPanel.getPanel(),
                 canvasContainer
         );
 
@@ -83,5 +94,9 @@ public final class GameStage {
 
     public GameCanvas getGameCanvas() {
         return gameCanvas;
+    }
+
+    public AnimalButtonPanel getAnimalPanel() {
+        return animalPanel;
     }
 }
