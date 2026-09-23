@@ -4,6 +4,7 @@ import com.forestdefense.base.AnimalType;
 import com.forestdefense.base.GameUtil;
 import com.forestdefense.ui.render.GameCanvas;
 import com.forestdefense.ui.stage.AnimalButtonPanel;
+import com.forestdefense.ui.stage.ScorePanel;
 
 import javafx.scene.Cursor;
 import javafx.scene.input.MouseEvent;
@@ -19,6 +20,7 @@ public final class MouseControl {
     private final GameManager gameManager;
     private final GameCanvas canvas;
     private final AnimalButtonPanel animalPanel;
+    private final ScorePanel scorePanel;
 
     private int hoverRow = -1;
     private int hoverCol = -1;
@@ -28,11 +30,26 @@ public final class MouseControl {
             GameManager gameManager,
             GameCanvas canvas,
             AnimalButtonPanel animalPanel) {
-
+    
+        this(
+                gameManager,
+                canvas,
+                animalPanel,
+                null
+        );
+    }
+    
+    public MouseControl(
+            GameManager gameManager,
+            GameCanvas canvas,
+            AnimalButtonPanel animalPanel,
+            ScorePanel scorePanel) {
+    
         this.gameManager = gameManager;
         this.canvas = canvas;
         this.animalPanel = animalPanel;
-
+        this.scorePanel = scorePanel;
+    
         initializeMouseListeners();
     }
 
@@ -73,12 +90,21 @@ public final class MouseControl {
             return;
         }
 
-        animalPanel.updateButtonsAvailability(
+        int remainingFruits =
                 gameManager
                         .getResourceManager()
-                        .getFruitCount()
+                        .getFruitCount();
+        
+        animalPanel.updateButtonsAvailability(
+                remainingFruits
         );
-
+        
+        if (scorePanel != null) {
+            scorePanel.updateFruits(
+                    remainingFruits
+            );
+        }
+        
         canvas.redraw(
                 gameManager.getGameWorld()
         );
