@@ -1,6 +1,7 @@
 package com.forestdefense.ui.render;
 
 import com.forestdefense.base.GameConstant;
+import com.forestdefense.logic.GameWorld;
 
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -9,8 +10,8 @@ import javafx.scene.paint.Color;
 /**
  * Main game canvas.
  *
- * Responsible for drawing the forest background, defense grid,
- * nest area and enemy spawn area.
+ * Draws the board background and delegates entity rendering
+ * to the Renderer.
  */
 public final class GameCanvas extends Canvas {
 
@@ -24,21 +25,28 @@ public final class GameCanvas extends Canvas {
             + GameConstant.GRID_ROWS * GameConstant.CELL_SIZE
             + 50;
 
+    private final Renderer renderer;
+
     public GameCanvas() {
         super(CANVAS_WIDTH, CANVAS_HEIGHT);
-        redraw();
+        renderer = new Renderer();
+        redraw(null);
     }
 
     /**
-     * Redraws the complete game scene.
+     * Redraws the board and all active game entities.
      */
-    public void redraw() {
+    public void redraw(GameWorld world) {
         GraphicsContext gc = getGraphicsContext2D();
+
+        gc.clearRect(0, 0, getWidth(), getHeight());
 
         drawBackground(gc);
         drawGrid(gc);
         drawNest(gc);
         drawSpawnArea(gc);
+
+        renderer.render(gc, world);
     }
 
     private void drawBackground(GraphicsContext gc) {
@@ -60,7 +68,6 @@ public final class GameCanvas extends Canvas {
 
         for (int row = 0; row < GameConstant.GRID_ROWS; row++) {
             for (int col = 0; col < GameConstant.GRID_COLS; col++) {
-
                 double x = startX + col * cellSize;
                 double y = startY + row * cellSize;
 
@@ -79,24 +86,25 @@ public final class GameCanvas extends Canvas {
         }
     }
 
+    /**
+     * Draws the nest behind the Egg entity.
+     */
     private void drawNest(GraphicsContext gc) {
-        double centerY = GameConstant.GRID_OFFSET_Y
+        double centerY =
+                GameConstant.GRID_OFFSET_Y
                 + GameConstant.GRID_ROWS
                 * GameConstant.CELL_SIZE / 2.0;
 
-        gc.setFill(Color.web("#8B5E3C"));
-        gc.fillOval(9, centerY - 30, 34, 60);
+        gc.setFill(Color.web("#6B442D"));
+        gc.fillOval(2, centerY - 34, 46, 68);
 
-        gc.setFill(Color.web("#FFF6D8"));
-        gc.fillOval(17, centerY - 18, 18, 36);
-
-        gc.setStroke(Color.web("#D8C89A"));
-        gc.setLineWidth(2);
-        gc.strokeOval(17, centerY - 18, 18, 36);
+        gc.setFill(Color.web("#9A6A45"));
+        gc.fillOval(7, centerY - 29, 36, 58);
     }
 
     private void drawSpawnArea(GraphicsContext gc) {
-        double spawnX = GameConstant.GRID_OFFSET_X
+        double spawnX =
+                GameConstant.GRID_OFFSET_X
                 + GameConstant.GRID_COLS
                 * GameConstant.CELL_SIZE;
 
