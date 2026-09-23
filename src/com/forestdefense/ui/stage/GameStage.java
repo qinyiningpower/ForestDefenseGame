@@ -82,7 +82,8 @@ public final class GameStage {
         mouseControl = new MouseControl(
                 gameManager,
                 gameCanvas,
-                animalPanel
+                animalPanel,
+                scorePanel
         );
 
         StackPane canvasContainer = new StackPane(gameCanvas);
