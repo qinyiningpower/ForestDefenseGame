@@ -22,6 +22,7 @@ public final class GameStage {
     private Scene scene;
     private GameCanvas gameCanvas;
     private AnimalButtonPanel animalPanel;
+    private MouseControl mouseControl;
 
     public GameStage(Stage stage) {
         this.stage = stage;
@@ -58,6 +59,12 @@ public final class GameStage {
 
         gameCanvas.redraw(
                 gameManager.getGameWorld()
+        );
+
+        mouseControl = new MouseControl(
+                gameManager,
+                gameCanvas,
+                animalPanel
         );
 
         StackPane canvasContainer = new StackPane(gameCanvas);
@@ -98,5 +105,8 @@ public final class GameStage {
 
     public AnimalButtonPanel getAnimalPanel() {
         return animalPanel;
+    }
+    public MouseControl getMouseControl() {
+        return mouseControl;
     }
 }
