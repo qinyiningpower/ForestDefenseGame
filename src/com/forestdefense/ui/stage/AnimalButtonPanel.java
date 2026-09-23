@@ -1,69 +1,157 @@
 package com.forestdefense.ui.stage;
 
 import com.forestdefense.base.AnimalType;
+
+import javafx.geometry.Pos;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.HBox;
 
 /**
- * 动物选择按钮面板
- * 管理所有可选动物的按钮：松鼠、刺猬、啄木鸟、狐狸、乌龟
- * 
- * @author 成员2 负责实现
+ * Displays the available defensive animals and manages selection.
  */
-public class AnimalButtonPanel {
-    
-    private HBox panel;
-    private ToggleGroup toggleGroup;
-    private ToggleButton squirrelBtn;
-    private ToggleButton hedgehogBtn;
-    private ToggleButton woodpeckerBtn;
-    private ToggleButton foxBtn;
-    private ToggleButton turtleBtn;
-    
+public final class AnimalButtonPanel {
+
+    private final HBox panel;
+    private final ToggleGroup toggleGroup;
+
+    private final ToggleButton squirrelButton;
+    private final ToggleButton hedgehogButton;
+    private final ToggleButton woodpeckerButton;
+    private final ToggleButton foxButton;
+    private final ToggleButton turtleButton;
+
     private AnimalType selectedType;
-    
+
     public AnimalButtonPanel() {
-        // TODO: 由成员2实现
-        // - 创建ToggleGroup（实现互斥选择）
-        // - 创建所有ToggleButton
-        // - 设置按钮文字：显示名称+价格（如 "🐿 松鼠 50🍎"）
-        // - 绑定选择事件
-        // - 布局排版
+        toggleGroup = new ToggleGroup();
+
+        squirrelButton = createButton(AnimalType.SQUIRREL);
+        hedgehogButton = createButton(AnimalType.HEDGEHOG);
+        woodpeckerButton = createButton(AnimalType.WOODPECKER);
+        foxButton = createButton(AnimalType.FOX);
+        turtleButton = createButton(AnimalType.TURTLE);
+
+        panel = new HBox(
+                10,
+                squirrelButton,
+                hedgehogButton,
+                woodpeckerButton,
+                foxButton,
+                turtleButton
+        );
+
+        panel.setAlignment(Pos.CENTER);
+        panel.setStyle(
+                "-fx-padding: 12;"
+                + "-fx-background-color: #173F35;"
+                + "-fx-background-radius: 14;"
+        );
+
+        toggleGroup.selectedToggleProperty().addListener(
+                (observable, previousToggle, selectedToggle) -> {
+                    if (selectedToggle == null) {
+                        selectedType = null;
+                    } else {
+                        selectedType = (AnimalType)
+                                selectedToggle.getUserData();
+                    }
+                }
+        );
     }
-    
-    /**
-     * 获取面板对象
-     */
+
+    private ToggleButton createButton(AnimalType type) {
+        String name = formatName(type.getDisplayName());
+
+        ToggleButton button = new ToggleButton(
+                name + "\n" + type.getCost() + " fruits"
+        );
+
+        button.setUserData(type);
+        button.setToggleGroup(toggleGroup);
+        button.setPrefWidth(120);
+        button.setPrefHeight(58);
+
+        button.setStyle(
+                "-fx-font-size: 13px;"
+                + "-fx-font-weight: bold;"
+                + "-fx-text-fill: #173F35;"
+                + "-fx-background-color: #E8F1DC;"
+                + "-fx-background-radius: 10;"
+                + "-fx-cursor: hand;"
+        );
+
+        return button;
+    }
+
+    private String formatName(String name) {
+        if (name == null || name.isEmpty()) {
+            return "";
+        }
+
+        return name.substring(0, 1).toUpperCase()
+                + name.substring(1);
+    }
+
     public HBox getPanel() {
-        // TODO: 由成员2实现
         return panel;
     }
-    
-    /**
-     * 获取当前选中的动物类型
-     */
+
     public AnimalType getSelectedType() {
-        // TODO: 由成员2实现
         return selectedType;
     }
-    
-    /**
-     * 清除所有选中状态
-     */
+
     public void clearSelection() {
-        // TODO: 由成员2实现
-        // - toggleGroup.selectToggle(null)
-        // - selectedType = null
+        toggleGroup.selectToggle(null);
+        selectedType = null;
     }
-    
+
     /**
-     * 根据果子数量更新按钮可用状态
-     * @param fruits 当前果子数量
+     * Disables animals that the player cannot currently afford.
      */
     public void updateButtonsAvailability(int fruits) {
-        // TODO: 由成员2实现
-        // - 果子 < 动物价格 → 按钮变灰禁用
-        // - 果子 >= 动物价格 → 按钮启用
+        updateButtonAvailability(
+                squirrelButton,
+                AnimalType.SQUIRREL,
+                fruits
+        );
+
+        updateButtonAvailability(
+                hedgehogButton,
+                AnimalType.HEDGEHOG,
+                fruits
+        );
+
+        updateButtonAvailability(
+                woodpeckerButton,
+                AnimalType.WOODPECKER,
+                fruits
+        );
+
+        updateButtonAvailability(
+                foxButton,
+                AnimalType.FOX,
+                fruits
+        );
+
+        updateButtonAvailability(
+                turtleButton,
+                AnimalType.TURTLE,
+                fruits
+        );
+
+        if (toggleGroup.getSelectedToggle() != null
+                && ((ToggleButton) toggleGroup.getSelectedToggle())
+                .isDisabled()) {
+            clearSelection();
+        }
+    }
+
+    private void updateButtonAvailability(
+            ToggleButton button,
+            AnimalType type,
+            int fruits) {
+
+        button.setDisable(fruits < type.getCost());
     }
 }
