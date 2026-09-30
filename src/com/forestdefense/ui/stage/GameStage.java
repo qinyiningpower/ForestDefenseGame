@@ -4,6 +4,7 @@ import com.forestdefense.base.GameConstant;
 import com.forestdefense.base.GameState;
 import com.forestdefense.control.GameManager;
 import com.forestdefense.control.MouseControl;
+import com.forestdefense.ui.render.GameAnimation;
 import com.forestdefense.ui.render.GameCanvas;
 
 import javafx.application.Platform;
@@ -28,6 +29,7 @@ public final class GameStage {
     private MouseControl mouseControl;
     private ScorePanel scorePanel;
     private MenuBarUtil menuBar;
+    private GameAnimation gameAnimation;
 
     public GameStage(Stage stage) {
         this.stage = stage;
@@ -59,17 +61,21 @@ public final class GameStage {
         scorePanel.updateFruits(
                 gameManager.getResourceManager().getFruitCount()
         );
+
         scorePanel.updateWave(
                 gameManager.getWaveManager().getCurrentWave(),
                 gameManager.getWaveManager().getMaxWave()
         );
+
         scorePanel.updateKills(0);
         scorePanel.updateStatus("Ready");
+
         scorePanel.updateEggStatus(
                 gameManager.getGameWorld().getEgg().isAlive()
         );
 
         animalPanel = new AnimalButtonPanel();
+
         animalPanel.updateButtonsAvailability(
                 gameManager.getResourceManager().getFruitCount()
         );
@@ -85,7 +91,18 @@ public final class GameStage {
         );
 
         menuBar = new MenuBarUtil();
+
+        gameAnimation = new GameAnimation(
+                gameManager,
+                gameCanvas,
+                scorePanel,
+                animalPanel,
+                menuBar,
+                mouseControl
+        );
+
         configureMenuActions(gameManager);
+        gameAnimation.start();
 
         StackPane canvasContainer = new StackPane(gameCanvas);
         canvasContainer.setPadding(new Insets(15));
@@ -113,6 +130,11 @@ public final class GameStage {
         stage.setTitle("Forest Defense Game");
         stage.setScene(scene);
         stage.setResizable(false);
+
+        stage.setOnCloseRequest(event ->
+                gameAnimation.stop()
+        );
+
         stage.centerOnScreen();
         stage.show();
     }
@@ -130,6 +152,7 @@ public final class GameStage {
 
             mouseControl.setEnabled(true);
             scorePanel.updateStatus("Running");
+
             menuBar.updateButtonState(
                     gameManager.getCurrentState()
             );
@@ -140,6 +163,7 @@ public final class GameStage {
 
             mouseControl.setEnabled(false);
             scorePanel.updateStatus("Paused");
+
             menuBar.updateButtonState(
                     gameManager.getCurrentState()
             );
@@ -147,8 +171,10 @@ public final class GameStage {
 
         menuBar.getRestartButton().setOnAction(event -> {
             gameManager.resetGame();
+            gameAnimation.reset();
 
             animalPanel.clearSelection();
+
             animalPanel.updateButtonsAvailability(
                     gameManager.getResourceManager().getFruitCount()
             );
@@ -156,17 +182,23 @@ public final class GameStage {
             scorePanel.updateFruits(
                     gameManager.getResourceManager().getFruitCount()
             );
+
             scorePanel.updateWave(
                     gameManager.getWaveManager().getCurrentWave(),
                     gameManager.getWaveManager().getMaxWave()
             );
+
             scorePanel.updateKills(0);
             scorePanel.updateStatus("Ready");
+
             scorePanel.updateEggStatus(
                     gameManager.getGameWorld().getEgg().isAlive()
             );
 
-            gameCanvas.redraw(gameManager.getGameWorld());
+            gameCanvas.redraw(
+                    gameManager.getGameWorld()
+            );
+
             mouseControl.setEnabled(true);
 
             menuBar.updateButtonState(
@@ -174,9 +206,10 @@ public final class GameStage {
             );
         });
 
-        menuBar.getExitButton().setOnAction(
-                event -> Platform.exit()
-        );
+        menuBar.getExitButton().setOnAction(event -> {
+            gameAnimation.stop();
+            Platform.exit();
+        });
     }
 
     public Scene getScene() {
@@ -201,5 +234,9 @@ public final class GameStage {
 
     public MenuBarUtil getMenuBar() {
         return menuBar;
+    }
+
+    public GameAnimation getGameAnimation() {
+        return gameAnimation;
     }
 }
