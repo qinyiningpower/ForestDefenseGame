@@ -1,7 +1,10 @@
 package com.forestdefense.control;
 
+import java.util.Iterator;
+
 import com.forestdefense.base.AnimalType;
 import com.forestdefense.base.GameUtil;
+import com.forestdefense.entity.Fruit;
 import com.forestdefense.ui.render.GameCanvas;
 import com.forestdefense.ui.stage.AnimalButtonPanel;
 import com.forestdefense.ui.stage.ScorePanel;
@@ -12,8 +15,7 @@ import javafx.scene.input.MouseEvent;
 /**
  * Handles mouse interaction with the game board.
  *
- * Converts canvas coordinates into grid positions and delegates
- * animal placement to GameManager.
+ * Supports animal placement, fruit collection and cursor feedback.
  */
 public final class MouseControl {
 
@@ -30,7 +32,7 @@ public final class MouseControl {
             GameManager gameManager,
             GameCanvas canvas,
             AnimalButtonPanel animalPanel) {
-    
+
         this(
                 gameManager,
                 canvas,
@@ -38,18 +40,18 @@ public final class MouseControl {
                 null
         );
     }
-    
+
     public MouseControl(
             GameManager gameManager,
             GameCanvas canvas,
             AnimalButtonPanel animalPanel,
             ScorePanel scorePanel) {
-    
+
         this.gameManager = gameManager;
         this.canvas = canvas;
         this.animalPanel = animalPanel;
         this.scorePanel = scorePanel;
-    
+
         initializeMouseListeners();
     }
 
@@ -60,7 +62,7 @@ public final class MouseControl {
     }
 
     /**
-     * Attempts to place the selected animal in the clicked cell.
+     * Collects a fruit or attempts to place the selected animal.
      */
     private void handleMouseClick(MouseEvent event) {
         if (!enabled) {
@@ -69,6 +71,10 @@ public final class MouseControl {
 
         double mouseX = event.getX();
         double mouseY = event.getY();
+
+        if (collectFruitAt(mouseX, mouseY)) {
+            return;
+        }
 
         if (!GameUtil.isInGridArea(mouseX, mouseY)) {
             return;
@@ -90,32 +96,99 @@ public final class MouseControl {
             return;
         }
 
-        int remainingFruits =
-                gameManager
-                        .getResourceManager()
-                        .getFruitCount();
-        
-        animalPanel.updateButtonsAvailability(
-                remainingFruits
-        );
-        
-        if (scorePanel != null) {
-            scorePanel.updateFruits(
-                    remainingFruits
-            );
-        }
-        
+        refreshResourceInterface();
+
         canvas.redraw(
                 gameManager.getGameWorld()
         );
     }
 
     /**
-     * Tracks the grid cell currently under the cursor.
+     * Collects the active fruit under the mouse pointer.
+     */
+    private boolean collectFruitAt(
+            double mouseX,
+            double mouseY) {
+
+        Iterator<Fruit> iterator =
+                gameManager
+                        .getGameWorld()
+                        .getFruits()
+                        .iterator();
+
+        while (iterator.hasNext()) {
+            Fruit fruit = iterator.next();
+
+            if (!fruit.isActive()) {
+                continue;
+            }
+
+            if (!containsPoint(fruit, mouseX, mouseY)) {
+                continue;
+            }
+
+            gameManager
+                    .getResourceManager()
+                    .collectFruit(fruit);
+
+            iterator.remove();
+
+            refreshResourceInterface();
+
+            canvas.redraw(
+                    gameManager.getGameWorld()
+            );
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean containsPoint(
+            Fruit fruit,
+            double mouseX,
+            double mouseY) {
+
+        return mouseX >= fruit.getX()
+                && mouseX <= fruit.getX() + fruit.getWidth()
+                && mouseY >= fruit.getY()
+                && mouseY <= fruit.getY() + fruit.getHeight();
+    }
+
+    /**
+     * Updates fruit count and animal purchasing availability.
+     */
+    private void refreshResourceInterface() {
+        int remainingFruits =
+                gameManager
+                        .getResourceManager()
+                        .getFruitCount();
+
+        animalPanel.updateButtonsAvailability(
+                remainingFruits
+        );
+
+        if (scorePanel != null) {
+            scorePanel.updateFruits(
+                    remainingFruits
+            );
+        }
+    }
+
+    /**
+     * Tracks the current cell and displays an interactive cursor.
      */
     private void handleMouseMove(MouseEvent event) {
         double mouseX = event.getX();
         double mouseY = event.getY();
+
+        if (isFruitAt(mouseX, mouseY)) {
+            hoverRow = -1;
+            hoverCol = -1;
+            canvas.setCursor(Cursor.HAND);
+            return;
+        }
 
         if (!GameUtil.isInGridArea(mouseX, mouseY)) {
             hoverRow = -1;
@@ -133,6 +206,22 @@ public final class MouseControl {
         } else {
             canvas.setCursor(Cursor.DEFAULT);
         }
+    }
+
+    private boolean isFruitAt(
+            double mouseX,
+            double mouseY) {
+
+        for (Fruit fruit :
+                gameManager.getGameWorld().getFruits()) {
+
+            if (fruit.isActive()
+                    && containsPoint(fruit, mouseX, mouseY)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void handleMouseExit(MouseEvent event) {
