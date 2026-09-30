@@ -1,9 +1,12 @@
 package com.forestdefense.ui.stage;
-import com.forestdefense.control.MouseControl;
+
 import com.forestdefense.base.GameConstant;
+import com.forestdefense.base.GameState;
 import com.forestdefense.control.GameManager;
+import com.forestdefense.control.MouseControl;
 import com.forestdefense.ui.render.GameCanvas;
 
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -24,6 +27,7 @@ public final class GameStage {
     private AnimalButtonPanel animalPanel;
     private MouseControl mouseControl;
     private ScorePanel scorePanel;
+    private MenuBarUtil menuBar;
 
     public GameStage(Stage stage) {
         this.stage = stage;
@@ -55,29 +59,23 @@ public final class GameStage {
         scorePanel.updateFruits(
                 gameManager.getResourceManager().getFruitCount()
         );
-        
         scorePanel.updateWave(
                 gameManager.getWaveManager().getCurrentWave(),
                 gameManager.getWaveManager().getMaxWave()
         );
-        
         scorePanel.updateKills(0);
         scorePanel.updateStatus("Ready");
-        
         scorePanel.updateEggStatus(
                 gameManager.getGameWorld().getEgg().isAlive()
         );
-        animalPanel = new AnimalButtonPanel();
 
+        animalPanel = new AnimalButtonPanel();
         animalPanel.updateButtonsAvailability(
                 gameManager.getResourceManager().getFruitCount()
         );
 
         gameCanvas = new GameCanvas();
-
-        gameCanvas.redraw(
-                gameManager.getGameWorld()
-        );
+        gameCanvas.redraw(gameManager.getGameWorld());
 
         mouseControl = new MouseControl(
                 gameManager,
@@ -86,6 +84,9 @@ public final class GameStage {
                 scorePanel
         );
 
+        menuBar = new MenuBarUtil();
+        configureMenuActions(gameManager);
+
         StackPane canvasContainer = new StackPane(gameCanvas);
         canvasContainer.setPadding(new Insets(15));
 
@@ -93,6 +94,7 @@ public final class GameStage {
                 10,
                 title,
                 subtitle,
+                menuBar.getPanel(),
                 scorePanel.getPanel(),
                 animalPanel.getPanel(),
                 canvasContainer
@@ -115,6 +117,68 @@ public final class GameStage {
         stage.show();
     }
 
+    /**
+     * Connects the control buttons to the game lifecycle.
+     */
+    private void configureMenuActions(GameManager gameManager) {
+        menuBar.getStartButton().setOnAction(event -> {
+            if (gameManager.getCurrentState() == GameState.PAUSED) {
+                gameManager.resumeGame();
+            } else {
+                gameManager.startGame();
+            }
+
+            mouseControl.setEnabled(true);
+            scorePanel.updateStatus("Running");
+            menuBar.updateButtonState(
+                    gameManager.getCurrentState()
+            );
+        });
+
+        menuBar.getPauseButton().setOnAction(event -> {
+            gameManager.pauseGame();
+
+            mouseControl.setEnabled(false);
+            scorePanel.updateStatus("Paused");
+            menuBar.updateButtonState(
+                    gameManager.getCurrentState()
+            );
+        });
+
+        menuBar.getRestartButton().setOnAction(event -> {
+            gameManager.resetGame();
+
+            animalPanel.clearSelection();
+            animalPanel.updateButtonsAvailability(
+                    gameManager.getResourceManager().getFruitCount()
+            );
+
+            scorePanel.updateFruits(
+                    gameManager.getResourceManager().getFruitCount()
+            );
+            scorePanel.updateWave(
+                    gameManager.getWaveManager().getCurrentWave(),
+                    gameManager.getWaveManager().getMaxWave()
+            );
+            scorePanel.updateKills(0);
+            scorePanel.updateStatus("Ready");
+            scorePanel.updateEggStatus(
+                    gameManager.getGameWorld().getEgg().isAlive()
+            );
+
+            gameCanvas.redraw(gameManager.getGameWorld());
+            mouseControl.setEnabled(true);
+
+            menuBar.updateButtonState(
+                    gameManager.getCurrentState()
+            );
+        });
+
+        menuBar.getExitButton().setOnAction(
+                event -> Platform.exit()
+        );
+    }
+
     public Scene getScene() {
         return scene;
     }
@@ -126,10 +190,16 @@ public final class GameStage {
     public AnimalButtonPanel getAnimalPanel() {
         return animalPanel;
     }
+
     public MouseControl getMouseControl() {
         return mouseControl;
     }
+
     public ScorePanel getScorePanel() {
         return scorePanel;
+    }
+
+    public MenuBarUtil getMenuBar() {
+        return menuBar;
     }
 }
