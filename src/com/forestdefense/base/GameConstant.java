@@ -53,7 +53,7 @@ public final class GameConstant {
     public static final int TURTLE_DEFENSE = 50;          // 减伤值
     
     // ========== 猛兽（进攻方）配置 ==========
-    public static final double BEAST_SPEED_MULTIPLIER = 2.0;  // 整体加速2倍
+    public static final double BEAST_SPEED_MULTIPLIER = 1.0;  // 整体加速2倍
     
     // 蛇
     public static final int SNAKE_HP = 40;
