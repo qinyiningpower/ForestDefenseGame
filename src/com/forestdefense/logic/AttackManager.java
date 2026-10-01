@@ -7,6 +7,7 @@ import com.forestdefense.entity.Animal;
 import com.forestdefense.entity.AttackAnimal;
 import com.forestdefense.entity.Beast;
 import com.forestdefense.entity.Bullet;
+import com.forestdefense.entity.DefenseAnimal;
 
 public class AttackManager {
 
@@ -36,7 +37,6 @@ public class AttackManager {
             }
 
             // 找同一行、在动物右边最近的敌人
-            // 这是目标选择，不是碰撞判断，所以不放在 CollisionManager
             Beast target = findTarget(animal, beasts);
 
             if (target == null) {
@@ -45,6 +45,7 @@ public class AttackManager {
 
             // 远程攻击：生成子弹
             if (animal.isRangedAttack()) {
+
                 Bullet bullet = new Bullet(
                         animal.getDamage(),
                         GameConstant.BULLET_SPEED,
@@ -57,7 +58,10 @@ public class AttackManager {
 
             // 近距离攻击：直接扣血
             else {
-                target.takeDamage(animal.getDamage());
+
+                target.takeDamage(
+                        animal.getDamage()
+                );
             }
 
             // 更新攻击时间
@@ -80,14 +84,47 @@ public class AttackManager {
             }
 
             // 使用 CollisionManager 判断敌人是否碰到动物
-            Animal target = collisionManager.getCollidedAnimal(beast, animals);
+            Animal target =
+                    collisionManager.getCollidedAnimal(
+                            beast,
+                            animals
+                    );
 
             if (target == null) {
                 continue;
             }
 
-            // 敌人攻击动物，扣动物 hp
-            target.takeDamage(beast.getAttackDamage());
+            // 敌人的基础伤害
+            int damage =
+                    beast.getAttackDamage();
+
+            /*
+             * 如果目标是防御型动物，例如 Turtle，
+             * 则根据 defenseValue 进行百分比减伤。
+             *
+             * 例如 defenseValue = 50，
+             * 表示减少 50% 伤害。
+             */
+            if (target instanceof DefenseAnimal) {
+
+                DefenseAnimal defenseAnimal =
+                        (DefenseAnimal) target;
+
+                int defensePercent =
+                        defenseAnimal.getDefenseValue();
+
+                damage = (int) Math.ceil(
+                        damage
+                                * (100 - defensePercent)
+                                / 100.0
+                );
+
+                // 防止出现负伤害
+                damage = Math.max(0, damage);
+            }
+
+            // 扣除最终伤害
+            target.takeDamage(damage);
 
             // 更新敌人攻击时间
             beast.updateAttackTime();
@@ -107,17 +144,20 @@ public class AttackManager {
                 continue;
             }
 
-            if (beast.getRow() != animal.getRow()) {
+            if (beast.getRow()
+                    != animal.getRow()) {
                 continue;
             }
 
             // 敌人在动物右边才可以被攻击
-            if (beast.getX() < animal.getX()) {
+            if (beast.getX()
+                    < animal.getX()) {
                 continue;
             }
 
             // 找最近的敌人
             if (beast.getX() < minX) {
+
                 minX = beast.getX();
                 target = beast;
             }
