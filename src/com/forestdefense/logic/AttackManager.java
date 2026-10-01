@@ -2,6 +2,7 @@ package com.forestdefense.logic;
 
 import java.util.ArrayList;
 
+import com.forestdefense.base.AnimalType;
 import com.forestdefense.base.GameConstant;
 import com.forestdefense.entity.Animal;
 import com.forestdefense.entity.AttackAnimal;
@@ -36,8 +37,17 @@ public class AttackManager {
                 continue;
             }
 
-            // 找同一行、在动物右边最近的敌人
-            Beast target = findTarget(animal, beasts);
+            // 获取当前动物的攻击范围
+            double attackRange =
+                    getAttackRange(animal);
+
+            // 找同一行、右侧、攻击范围内最近的敌人
+            Beast target =
+                    findTarget(
+                            animal,
+                            beasts,
+                            attackRange
+                    );
 
             if (target == null) {
                 continue;
@@ -131,12 +141,39 @@ public class AttackManager {
         }
     }
 
-    // 找攻击动物同一行右边最近的敌人
-    private Beast findTarget(AttackAnimal animal,
-                             ArrayList<Beast> beasts) {
+    // 根据动物类型获取攻击范围
+    private double getAttackRange(
+            AttackAnimal animal) {
+
+        if (animal.getType()
+                == AnimalType.HEDGEHOG) {
+
+            return GameConstant.HEDGEHOG_RANGE;
+        }
+
+        if (animal.getType()
+                == AnimalType.WOODPECKER) {
+
+            return GameConstant.WOODPECKER_RANGE;
+        }
+
+        if (animal.getType()
+                == AnimalType.FOX) {
+
+            return GameConstant.FOX_RANGE;
+        }
+
+        return 0;
+    }
+
+    // 找攻击动物同一行、右侧、攻击范围内最近的敌人
+    private Beast findTarget(
+            AttackAnimal animal,
+            ArrayList<Beast> beasts,
+            double attackRange) {
 
         Beast target = null;
-        double minX = Double.MAX_VALUE;
+        double minDistance = Double.MAX_VALUE;
 
         for (Beast beast : beasts) {
 
@@ -144,6 +181,7 @@ public class AttackManager {
                 continue;
             }
 
+            // 必须在同一行
             if (beast.getRow()
                     != animal.getRow()) {
                 continue;
@@ -155,10 +193,20 @@ public class AttackManager {
                 continue;
             }
 
-            // 找最近的敌人
-            if (beast.getX() < minX) {
+            // 计算水平距离
+            double distance =
+                    beast.getX()
+                            - animal.getX();
 
-                minX = beast.getX();
+            // 超出攻击范围不能攻击
+            if (distance > attackRange) {
+                continue;
+            }
+
+            // 找范围内最近的敌人
+            if (distance < minDistance) {
+
+                minDistance = distance;
                 target = beast;
             }
         }
