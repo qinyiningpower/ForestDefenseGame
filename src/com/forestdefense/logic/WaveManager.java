@@ -25,7 +25,11 @@ public class WaveManager {
     // 上一次生成波次的时间
     private long lastWaveTime;
 
+    // 波次计时是否已经开始
+    private boolean timerStarted;
+
     public WaveManager() {
+
         this.currentLevel = 1;
         this.currentWave = 0;
         this.maxWave = GameConstant.SIMPLE_WAVES;
@@ -34,7 +38,12 @@ public class WaveManager {
         this.waveInterval =
                 (long) (GameConstant.WAVE_INTERVAL * 1000);
 
-        this.lastWaveTime = System.currentTimeMillis();
+        /*
+         * 游戏创建时先不开始计算波次时间。
+         * 真正点击 Start 后再调用 startWaveTimer()。
+         */
+        this.lastWaveTime = 0;
+        this.timerStarted = false;
     }
 
     // 设置当前关卡
@@ -42,27 +51,57 @@ public class WaveManager {
 
         this.currentLevel = level;
         this.currentWave = 0;
-        this.lastWaveTime = System.currentTimeMillis();
+
+        // 切换关卡后重新等待游戏开始
+        this.lastWaveTime = 0;
+        this.timerStarted = false;
 
         if (level == 1) {
-            this.maxWave = GameConstant.SIMPLE_WAVES;
+
+            this.maxWave =
+                    GameConstant.SIMPLE_WAVES;
 
         } else if (level == 2) {
-            this.maxWave = GameConstant.DIFFICULT_WAVES;
+
+            this.maxWave =
+                    GameConstant.DIFFICULT_WAVES;
         }
+    }
+
+    /**
+     * 从玩家真正开始游戏时启动波次计时。
+     */
+    public void startWaveTimer() {
+
+        if (timerStarted) {
+            return;
+        }
+
+        lastWaveTime =
+                System.currentTimeMillis();
+
+        timerStarted = true;
     }
 
     // 判断当前是否可以生成下一波敌人
     public boolean canGenerateWave() {
 
-        long currentTime = System.currentTimeMillis();
+        // 游戏还没有正式开始时，不生成敌人
+        if (!timerStarted) {
+            return false;
+        }
+
+        long currentTime =
+                System.currentTimeMillis();
 
         return currentWave < maxWave
-                && currentTime - lastWaveTime >= waveInterval;
+                && currentTime - lastWaveTime
+                >= waveInterval;
     }
 
     // 生成下一波敌人
-    public void generateNextWave(ArrayList<Beast> beasts) {
+    public void generateNextWave(
+            ArrayList<Beast> beasts) {
 
         if (!canGenerateWave()) {
             return;
@@ -71,108 +110,201 @@ public class WaveManager {
         currentWave++;
 
         if (currentLevel == 1) {
+
             generateLevelOneWave(beasts);
 
         } else if (currentLevel == 2) {
+
             generateLevelTwoWave(beasts);
         }
 
-        lastWaveTime = System.currentTimeMillis();
+        // 这一波生成完成，从现在开始计算下一波时间
+        lastWaveTime =
+                System.currentTimeMillis();
     }
 
     // 第一关波次
-    private void generateLevelOneWave(ArrayList<Beast> beasts) {
+    private void generateLevelOneWave(
+            ArrayList<Beast> beasts) {
 
         /*
-         * GameConstant.GRID_COLS 表示网格右侧边界。
-         * 敌人会从棋盘最右边进入游戏区域。
+         * GRID_COLS 表示棋盘最右侧边界，
+         * 敌人从棋盘右边进入。
          */
-        double spawnX = GameConstant.GRID_COLS;
+        double spawnX =
+                GameConstant.GRID_COLS;
 
         if (currentWave == 1) {
 
-            beasts.add(new Snake(0, spawnX));
-            beasts.add(new Snake(1, spawnX));
+            beasts.add(
+                    new Snake(0, spawnX)
+            );
+
+            beasts.add(
+                    new Snake(1, spawnX)
+            );
         }
 
         else if (currentWave == 2) {
 
-            beasts.add(new Snake(0, spawnX));
-            beasts.add(new Snake(2, spawnX));
-            beasts.add(new Wolf(1, spawnX));
+            beasts.add(
+                    new Snake(0, spawnX)
+            );
+
+            beasts.add(
+                    new Snake(2, spawnX)
+            );
+
+            beasts.add(
+                    new Wolf(1, spawnX)
+            );
         }
 
         else if (currentWave == 3) {
 
-            beasts.add(new Snake(0, spawnX));
-            beasts.add(new Wolf(1, spawnX));
-            beasts.add(new Wolf(2, spawnX));
+            beasts.add(
+                    new Snake(0, spawnX)
+            );
+
+            beasts.add(
+                    new Wolf(1, spawnX)
+            );
+
+            beasts.add(
+                    new Wolf(2, spawnX)
+            );
         }
 
         else if (currentWave == 4) {
 
-            beasts.add(new Wolf(0, spawnX));
-            beasts.add(new Tiger(1, spawnX));
-            beasts.add(new Snake(2, spawnX));
+            beasts.add(
+                    new Wolf(0, spawnX)
+            );
+
+            beasts.add(
+                    new Tiger(1, spawnX)
+            );
+
+            beasts.add(
+                    new Snake(2, spawnX)
+            );
         }
 
         else if (currentWave == 5) {
 
-            beasts.add(new Tiger(0, spawnX));
-            beasts.add(new Wolf(1, spawnX));
-            beasts.add(new Tiger(2, spawnX));
+            beasts.add(
+                    new Tiger(0, spawnX)
+            );
+
+            beasts.add(
+                    new Wolf(1, spawnX)
+            );
+
+            beasts.add(
+                    new Tiger(2, spawnX)
+            );
         }
     }
 
     // 第二关波次
-    private void generateLevelTwoWave(ArrayList<Beast> beasts) {
+    private void generateLevelTwoWave(
+            ArrayList<Beast> beasts) {
 
         /*
          * 第二关难度更高：
          * 敌人数量更多，并且老虎更早出现。
          */
-        double spawnX = GameConstant.GRID_COLS;
+        double spawnX =
+                GameConstant.GRID_COLS;
 
         if (currentWave == 1) {
 
-            beasts.add(new Snake(0, spawnX));
-            beasts.add(new Snake(1, spawnX));
-            beasts.add(new Snake(2, spawnX));
+            beasts.add(
+                    new Snake(0, spawnX)
+            );
+
+            beasts.add(
+                    new Snake(1, spawnX)
+            );
+
+            beasts.add(
+                    new Snake(2, spawnX)
+            );
         }
 
         else if (currentWave == 2) {
 
-            beasts.add(new Snake(0, spawnX));
-            beasts.add(new Wolf(1, spawnX));
-            beasts.add(new Wolf(2, spawnX));
+            beasts.add(
+                    new Snake(0, spawnX)
+            );
+
+            beasts.add(
+                    new Wolf(1, spawnX)
+            );
+
+            beasts.add(
+                    new Wolf(2, spawnX)
+            );
         }
 
         else if (currentWave == 3) {
 
-            beasts.add(new Wolf(0, spawnX));
-            beasts.add(new Wolf(1, spawnX));
-            beasts.add(new Tiger(2, spawnX));
+            beasts.add(
+                    new Wolf(0, spawnX)
+            );
+
+            beasts.add(
+                    new Wolf(1, spawnX)
+            );
+
+            beasts.add(
+                    new Tiger(2, spawnX)
+            );
         }
 
         else if (currentWave == 4) {
 
-            beasts.add(new Tiger(0, spawnX));
-            beasts.add(new Wolf(1, spawnX));
-            beasts.add(new Tiger(2, spawnX));
+            beasts.add(
+                    new Tiger(0, spawnX)
+            );
+
+            beasts.add(
+                    new Wolf(1, spawnX)
+            );
+
+            beasts.add(
+                    new Tiger(2, spawnX)
+            );
         }
 
         else if (currentWave == 5) {
 
-            beasts.add(new Tiger(0, spawnX));
-            beasts.add(new Tiger(1, spawnX));
-            beasts.add(new Wolf(2, spawnX));
+            beasts.add(
+                    new Tiger(0, spawnX)
+            );
+
+            beasts.add(
+                    new Tiger(1, spawnX)
+            );
+
+            beasts.add(
+                    new Wolf(2, spawnX)
+            );
         }
 
         else if (currentWave == 6) {
 
-            beasts.add(new Tiger(0, spawnX));
-            beasts.add(new Tiger(1, spawnX));
-            beasts.add(new Tiger(2, spawnX));
+            beasts.add(
+                    new Tiger(0, spawnX)
+            );
+
+            beasts.add(
+                    new Tiger(1, spawnX)
+            );
+
+            beasts.add(
+                    new Tiger(2, spawnX)
+            );
         }
     }
 
