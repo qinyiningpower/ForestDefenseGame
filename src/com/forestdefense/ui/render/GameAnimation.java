@@ -25,8 +25,8 @@ import javafx.animation.AnimationTimer;
 /**
  * Runs the main game loop.
  *
- * Updates waves, attacks, movement, collisions, game state
- * and the JavaFX interface at a fixed frame rate.
+ * Updates waves, fruits, attacks, movement, collisions,
+ * game state and the JavaFX interface at a fixed frame rate.
  */
 public final class GameAnimation extends AnimationTimer {
 
@@ -70,6 +70,7 @@ public final class GameAnimation extends AnimationTimer {
 
     @Override
     public void handle(long now) {
+
         if (gameManager.getCurrentState() != GameState.RUNNING) {
             lastFrameTime = now;
             return;
@@ -81,6 +82,7 @@ public final class GameAnimation extends AnimationTimer {
         }
 
         updateGame();
+
         lastFrameTime = now;
     }
 
@@ -88,62 +90,100 @@ public final class GameAnimation extends AnimationTimer {
      * Performs one complete game update.
      */
     private void updateGame() {
-        GameWorld world = gameManager.getGameWorld();
 
-        gameManager.getWaveManager().generateNextWave(
-                world.getBeasts()
-        );
+        GameWorld world =
+                gameManager.getGameWorld();
+
+        // 生成下一波敌人
+        gameManager
+                .getWaveManager()
+                .generateNextWave(
+                        world.getBeasts()
+                );
 
         int livingBeastsBeforeUpdate =
-                countLivingBeasts(world.getBeasts());
+                countLivingBeasts(
+                        world.getBeasts()
+                );
 
+        // 松鼠生产果子
         produceFruits(world);
+
+        // 更新果子生命周期
+        updateFruits(world);
+
+        // 动物攻击
         updateAnimalAttacks(world);
+
+        // 敌人移动和攻击
         updateBeasts(world);
+
+        // 子弹移动
         updateBullets(world);
 
+        // 子弹与敌人碰撞
         collisionManager.checkBulletHitBeast(
                 world.getBullets(),
                 world.getBeasts()
         );
 
-        gameManager.getGameRule().checkTrap(
-                world.getBeasts(),
-                world.getTraps()
-        );
+        // 检查陷阱
+        gameManager
+                .getGameRule()
+                .checkTrap(
+                        world.getBeasts(),
+                        world.getTraps()
+                );
 
         int livingBeastsAfterUpdate =
-                countLivingBeasts(world.getBeasts());
+                countLivingBeasts(
+                        world.getBeasts()
+                );
 
         killCount += Math.max(
                 0,
-                livingBeastsBeforeUpdate - livingBeastsAfterUpdate
+                livingBeastsBeforeUpdate
+                        - livingBeastsAfterUpdate
         );
 
+        // 判断失败
         boolean playerLost =
-                gameManager.getGameRule().checkLose(
-                        world.getBeasts()
-                );
+                gameManager
+                        .getGameRule()
+                        .checkLose(
+                                world.getBeasts()
+                        );
 
+        // 判断胜利
         boolean playerWon =
-                gameManager.getGameRule().checkWin(
-                        gameManager.getWaveManager()
-                                .isAllWavesFinished(),
-                        world.getBeasts()
-                );
+                gameManager
+                        .getGameRule()
+                        .checkWin(
+                                gameManager
+                                        .getWaveManager()
+                                        .isAllWavesFinished(),
+                                world.getBeasts()
+                        );
 
-        gameManager.getGameRule().removeDeadObjects(
-                world.getAnimals(),
-                world.getBeasts(),
-                world.getBullets(),
-                world.getFruits(),
-                world.getTraps()
-        );
+        // 清理死亡或失效对象
+        gameManager
+                .getGameRule()
+                .removeDeadObjects(
+                        world.getAnimals(),
+                        world.getBeasts(),
+                        world.getBullets(),
+                        world.getFruits(),
+                        world.getTraps()
+                );
 
         if (playerLost) {
+
             world.getEgg().setAlive(false);
+
             finishGame(false);
+
         } else if (playerWon) {
+
             finishGame(true);
         }
 
@@ -154,46 +194,82 @@ public final class GameAnimation extends AnimationTimer {
      * Lets resource animals periodically produce fruits.
      */
     private void produceFruits(GameWorld world) {
-        for (Animal animal : world.getAnimals()) {
+
+        for (Animal animal :
+                world.getAnimals()) {
+
             if (!(animal instanceof ResourceAnimal)) {
                 continue;
             }
 
-            ResourceAnimal producer = (ResourceAnimal) animal;
+            ResourceAnimal producer =
+                    (ResourceAnimal) animal;
 
-            if (!producer.isAlive() || !producer.canProduce()) {
+            if (!producer.isAlive()
+                    || !producer.canProduce()) {
                 continue;
             }
 
-            Fruit fruit = new Fruit(
-                    producer.getProduceAmount(),
-                    producer.getRow(),
-                    producer.getCol()
-            );
+            Fruit fruit =
+                    new Fruit(
+                            producer.getProduceAmount(),
+                            producer.getRow(),
+                            producer.getCol()
+                    );
 
             fruit.setX(
                     animal.getX()
-                    + GameConstant.CELL_SIZE
-                    - GameConstant.FRUIT_WIDTH
-                    - 6
+                            + GameConstant.CELL_SIZE
+                            - GameConstant.FRUIT_WIDTH
+                            - 6
             );
 
-            fruit.setY(animal.getY() + 6);
+            fruit.setY(
+                    animal.getY() + 6
+            );
 
             world.getFruits().add(fruit);
+
             producer.updateProduceTime();
+        }
+    }
+
+    /**
+     * Updates active fruits.
+     *
+     * Fruit.update() checks whether a fruit has exceeded
+     * its lifetime and marks it as inactive.
+     */
+    private void updateFruits(GameWorld world) {
+
+        for (Fruit fruit :
+                world.getFruits()) {
+
+            if (!fruit.isActive()) {
+                continue;
+            }
+
+            fruit.update();
         }
     }
 
     /**
      * Runs ranged and close-range animal attacks.
      */
-    private void updateAnimalAttacks(GameWorld world) {
-        ArrayList<AttackAnimal> attackers = new ArrayList<>();
+    private void updateAnimalAttacks(
+            GameWorld world) {
 
-        for (Animal animal : world.getAnimals()) {
+        ArrayList<AttackAnimal> attackers =
+                new ArrayList<>();
+
+        for (Animal animal :
+                world.getAnimals()) {
+
             if (animal instanceof AttackAnimal) {
-                attackers.add((AttackAnimal) animal);
+
+                attackers.add(
+                        (AttackAnimal) animal
+                );
             }
         }
 
@@ -205,19 +281,25 @@ public final class GameAnimation extends AnimationTimer {
     }
 
     /**
-     * Moves enemies until they encounter an animal, then attacks it.
+     * Moves enemies until they encounter an animal,
+     * then lets them attack.
      */
-    private void updateBeasts(GameWorld world) {
-        for (Beast beast : world.getBeasts()) {
+    private void updateBeasts(
+            GameWorld world) {
+
+        for (Beast beast :
+                world.getBeasts()) {
+
             if (!beast.isAlive()) {
                 continue;
             }
 
             Animal collidedAnimal =
-                    collisionManager.getCollidedAnimal(
-                            beast,
-                            world.getAnimals()
-                    );
+                    collisionManager
+                            .getCollidedAnimal(
+                                    beast,
+                                    world.getAnimals()
+                            );
 
             if (collidedAnimal == null) {
                 beast.update();
@@ -231,26 +313,39 @@ public final class GameAnimation extends AnimationTimer {
     }
 
     /**
-     * Moves active bullets and removes bullets outside the board.
+     * Moves active bullets and removes bullets
+     * outside the board.
      */
-    private void updateBullets(GameWorld world) {
-        for (Bullet bullet : world.getBullets()) {
+    private void updateBullets(
+            GameWorld world) {
+
+        for (Bullet bullet :
+                world.getBullets()) {
+
             if (!bullet.isActive()) {
                 continue;
             }
 
             bullet.update();
 
-            if (GameUtil.isOutOfRightBoundary(bullet.getX())) {
+            if (GameUtil.isOutOfRightBoundary(
+                    bullet.getX())) {
+
                 bullet.setActive(false);
             }
         }
     }
 
-    private int countLivingBeasts(ArrayList<Beast> beasts) {
+    /**
+     * Counts living enemies.
+     */
+    private int countLivingBeasts(
+            ArrayList<Beast> beasts) {
+
         int count = 0;
 
         for (Beast beast : beasts) {
+
             if (beast.isAlive()) {
                 count++;
             }
@@ -259,14 +354,27 @@ public final class GameAnimation extends AnimationTimer {
         return count;
     }
 
-    private void finishGame(boolean playerWon) {
+    /**
+     * Ends the current game.
+     */
+    private void finishGame(
+            boolean playerWon) {
+
         gameManager.gameOver(playerWon);
+
         mouseControl.setEnabled(false);
 
         if (playerWon) {
-            scorePanel.updateStatus("Victory");
+
+            scorePanel.updateStatus(
+                    "Victory"
+            );
+
         } else {
-            scorePanel.updateStatus("Defeat");
+
+            scorePanel.updateStatus(
+                    "Defeat"
+            );
         }
 
         menuBar.updateButtonState(
@@ -275,22 +383,33 @@ public final class GameAnimation extends AnimationTimer {
     }
 
     /**
-     * Redraws the world and synchronizes the information panels.
+     * Redraws the world and synchronizes
+     * the information panels.
      */
-    private void refreshInterface(GameWorld world) {
+    private void refreshInterface(
+            GameWorld world) {
+
         scorePanel.updateWave(
-                gameManager.getWaveManager().getCurrentWave(),
-                gameManager.getWaveManager().getMaxWave()
+                gameManager
+                        .getWaveManager()
+                        .getCurrentWave(),
+                gameManager
+                        .getWaveManager()
+                        .getMaxWave()
         );
 
-        scorePanel.updateKills(killCount);
+        scorePanel.updateKills(
+                killCount
+        );
 
         scorePanel.updateEggStatus(
                 world.getEgg().isAlive()
         );
 
         animalPanel.updateButtonsAvailability(
-                gameManager.getResourceManager().getFruitCount()
+                gameManager
+                        .getResourceManager()
+                        .getFruitCount()
         );
 
         gameCanvas.redraw(world);
@@ -300,6 +419,7 @@ public final class GameAnimation extends AnimationTimer {
      * Clears loop statistics when a new game starts.
      */
     public void reset() {
+
         killCount = 0;
         lastFrameTime = 0;
     }
