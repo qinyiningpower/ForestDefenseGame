@@ -13,11 +13,6 @@ import com.forestdefense.ui.stage.ScorePanel;
 import javafx.scene.Cursor;
 import javafx.scene.input.MouseEvent;
 
-/**
- * Handles mouse interaction with the game board.
- *
- * Supports animal placement, fruit collection and cursor feedback.
- */
 public final class MouseControl {
 
     private final GameManager gameManager;
@@ -62,9 +57,6 @@ public final class MouseControl {
         canvas.setOnMouseExited(this::handleMouseExit);
     }
 
-    /**
-     * Collects fruit or places the selected animal.
-     */
     private void handleMouseClick(MouseEvent event) {
 
         if (!enabled) {
@@ -74,17 +66,19 @@ public final class MouseControl {
         double mouseX = event.getX();
         double mouseY = event.getY();
 
-        // 先判断是否点击到了果子
+        // 先尝试收集果子
         if (collectFruitAt(mouseX, mouseY)) {
             return;
         }
 
-        // 只有游戏正在运行时才允许放动物
-        if (gameManager.getCurrentState() != GameState.RUNNING) {
+        // 暂停或游戏结束时不能放动物
+        GameState state = gameManager.getCurrentState();
+
+        if (state == GameState.PAUSED || state.isGameOver()) {
             return;
         }
 
-        // 必须点击棋盘内部
+        // 必须点击在棋盘内部
         if (!GameUtil.isInGridArea(mouseX, mouseY)) {
             return;
         }
@@ -92,7 +86,7 @@ public final class MouseControl {
         int row = GameUtil.screenYToRow(mouseY);
         int col = GameUtil.screenXToCol(mouseX);
 
-        // 第 0 列是陷阱区域，不能放动物
+        // 第 0 列留给陷阱
         if (col == 0) {
             return;
         }
@@ -100,7 +94,6 @@ public final class MouseControl {
         AnimalType selectedType =
                 animalPanel.getSelectedType();
 
-        // 没有选择动物时什么都不做
         if (selectedType == null) {
             return;
         }
@@ -116,18 +109,13 @@ public final class MouseControl {
             return;
         }
 
-        // 放置成功后刷新资源数量
         refreshResourceInterface();
 
-        // 重新绘制棋盘
         canvas.redraw(
                 gameManager.getGameWorld()
         );
     }
 
-    /**
-     * Collects the active fruit under the mouse pointer.
-     */
     private boolean collectFruitAt(
             double mouseX,
             double mouseY) {
@@ -182,30 +170,20 @@ public final class MouseControl {
                 && mouseY <= fruit.getY() + fruit.getHeight();
     }
 
-    /**
-     * Updates fruit count and animal purchasing availability.
-     */
     private void refreshResourceInterface() {
 
-        int remainingFruits =
+        int fruits =
                 gameManager
                         .getResourceManager()
                         .getFruitCount();
 
-        animalPanel.updateButtonsAvailability(
-                remainingFruits
-        );
+        animalPanel.updateButtonsAvailability(fruits);
 
         if (scorePanel != null) {
-            scorePanel.updateFruits(
-                    remainingFruits
-            );
+            scorePanel.updateFruits(fruits);
         }
     }
 
-    /**
-     * Tracks the current cell and displays an interactive cursor.
-     */
     private void handleMouseMove(MouseEvent event) {
 
         double mouseX = event.getX();
@@ -237,15 +215,17 @@ public final class MouseControl {
         hoverCol =
                 GameUtil.screenXToCol(mouseX);
 
-        if (animalPanel.getSelectedType() != null
-                && hoverCol > 0
-                && gameManager.getCurrentState()
-                == GameState.RUNNING) {
+        GameState state = gameManager.getCurrentState();
 
+        boolean canPlace =
+                state != GameState.PAUSED
+                && !state.isGameOver()
+                && animalPanel.getSelectedType() != null
+                && hoverCol > 0;
+
+        if (canPlace) {
             canvas.setCursor(Cursor.HAND);
-
         } else {
-
             canvas.setCursor(Cursor.DEFAULT);
         }
     }
@@ -284,9 +264,7 @@ public final class MouseControl {
 
         this.enabled = enabled;
 
-        canvas.setMouseTransparent(
-                !enabled
-        );
+        canvas.setMouseTransparent(!enabled);
     }
 
     public boolean isEnabled() {
