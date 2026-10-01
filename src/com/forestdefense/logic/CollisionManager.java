@@ -82,7 +82,19 @@ public class CollisionManager {
     // 判断敌人是否到达森林陷阱位置
     public boolean isBeastReachTrap(Beast beast) {
 
-        // 陷阱位置在地图最左侧附近
-        return beast.getCol() <= 1;
+        /*
+         * Beast 移动时只会更新 x 坐标，
+         * 不会同步更新 col。
+         *
+         * 因此这里不能再使用 beast.getCol() 判断，
+         * 必须根据敌人的实际屏幕 x 坐标判断。
+         *
+         * 第 0 列是陷阱所在区域。
+         * 当敌人进入第 1 列左侧边界时，
+         * 视为已经到达陷阱。
+         */
+        double trapBoundary = GameUtil.colToScreenX(1);
+
+        return beast.getX() <= trapBoundary;
     }
 }
