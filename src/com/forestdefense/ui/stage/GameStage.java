@@ -39,177 +39,329 @@ public final class GameStage {
      * Creates and displays the initial game interface.
      */
     public void init() {
-        GameManager gameManager = GameManager.getInstance();
 
-        Label title = new Label("Forest Defense Game");
+        GameManager gameManager =
+                GameManager.getInstance();
+
+        Label title =
+                new Label(
+                        "Forest Defense Game"
+                );
+
         title.setStyle(
                 "-fx-font-size: 32px;"
-                + "-fx-font-weight: bold;"
-                + "-fx-text-fill: #F4E9C9;"
+                        + "-fx-font-weight: bold;"
+                        + "-fx-text-fill: #F4E9C9;"
         );
 
-        Label subtitle = new Label(
-                "Protect the nest • Build defenses • Survive every wave"
-        );
+        Label subtitle =
+                new Label(
+                        "Protect the nest • Build defenses • Survive every wave"
+                );
+
         subtitle.setStyle(
                 "-fx-font-size: 15px;"
-                + "-fx-text-fill: #BFD6C7;"
+                        + "-fx-text-fill: #BFD6C7;"
         );
 
-        scorePanel = new ScorePanel();
+        scorePanel =
+                new ScorePanel();
 
         scorePanel.updateFruits(
-                gameManager.getResourceManager().getFruitCount()
+                gameManager
+                        .getResourceManager()
+                        .getFruitCount()
         );
 
         scorePanel.updateWave(
-                gameManager.getWaveManager().getCurrentWave(),
-                gameManager.getWaveManager().getMaxWave()
+                gameManager
+                        .getWaveManager()
+                        .getCurrentWave(),
+                gameManager
+                        .getWaveManager()
+                        .getMaxWave()
         );
 
         scorePanel.updateKills(0);
-        scorePanel.updateStatus("Ready");
+
+        scorePanel.updateStatus(
+                "Ready"
+        );
 
         scorePanel.updateEggStatus(
-                gameManager.getGameWorld().getEgg().isAlive()
+                gameManager
+                        .getGameWorld()
+                        .getEgg()
+                        .isAlive()
         );
 
-        animalPanel = new AnimalButtonPanel();
+        animalPanel =
+                new AnimalButtonPanel();
 
         animalPanel.updateButtonsAvailability(
-                gameManager.getResourceManager().getFruitCount()
+                gameManager
+                        .getResourceManager()
+                        .getFruitCount()
         );
 
-        gameCanvas = new GameCanvas();
-        gameCanvas.redraw(gameManager.getGameWorld());
+        gameCanvas =
+                new GameCanvas();
 
-        mouseControl = new MouseControl(
-                gameManager,
-                gameCanvas,
-                animalPanel,
-                scorePanel
+        gameCanvas.redraw(
+                gameManager.getGameWorld()
         );
 
-        menuBar = new MenuBarUtil();
+        mouseControl =
+                new MouseControl(
+                        gameManager,
+                        gameCanvas,
+                        animalPanel,
+                        scorePanel
+                );
 
-        gameAnimation = new GameAnimation(
-                gameManager,
-                gameCanvas,
-                scorePanel,
-                animalPanel,
-                menuBar,
-                mouseControl
+        menuBar =
+                new MenuBarUtil();
+
+        gameAnimation =
+                new GameAnimation(
+                        gameManager,
+                        gameCanvas,
+                        scorePanel,
+                        animalPanel,
+                        menuBar,
+                        mouseControl
+                );
+
+        configureMenuActions(
+                gameManager
         );
 
-        configureMenuActions(gameManager);
         gameAnimation.start();
 
-        StackPane canvasContainer = new StackPane(gameCanvas);
-        canvasContainer.setPadding(new Insets(15));
+        StackPane canvasContainer =
+                new StackPane(
+                        gameCanvas
+                );
 
-        VBox root = new VBox(
-                10,
-                title,
-                subtitle,
-                menuBar.getPanel(),
-                scorePanel.getPanel(),
-                animalPanel.getPanel(),
-                canvasContainer
+        canvasContainer.setPadding(
+                new Insets(15)
         );
 
-        root.setAlignment(Pos.CENTER);
-        root.setPadding(new Insets(25));
-        root.setStyle("-fx-background-color: #102F29;");
+        VBox root =
+                new VBox(
+                        10,
+                        title,
+                        subtitle,
+                        menuBar.getPanel(),
+                        scorePanel.getPanel(),
+                        animalPanel.getPanel(),
+                        canvasContainer
+                );
 
-        scene = new Scene(
-                root,
-                GameConstant.WINDOW_WIDTH,
-                GameConstant.WINDOW_HEIGHT
+        root.setAlignment(
+                Pos.CENTER
         );
 
-        stage.setTitle("Forest Defense Game");
-        stage.setScene(scene);
-        stage.setResizable(false);
+        root.setPadding(
+                new Insets(25)
+        );
 
-        stage.setOnCloseRequest(event ->
-                gameAnimation.stop()
+        root.setStyle(
+                "-fx-background-color: #102F29;"
+        );
+
+        scene =
+                new Scene(
+                        root,
+                        GameConstant.WINDOW_WIDTH,
+                        GameConstant.WINDOW_HEIGHT
+                );
+
+        stage.setTitle(
+                "Forest Defense Game"
+        );
+
+        stage.setScene(
+                scene
+        );
+
+        stage.setResizable(
+                false
+        );
+
+        stage.setOnCloseRequest(
+                event ->
+                        gameAnimation.stop()
         );
 
         stage.centerOnScreen();
+
         stage.show();
     }
 
     /**
      * Connects the control buttons to the game lifecycle.
      */
-    private void configureMenuActions(GameManager gameManager) {
-        menuBar.getStartButton().setOnAction(event -> {
-            if (gameManager.getCurrentState() == GameState.PAUSED) {
-                gameManager.resumeGame();
-            } else {
-                gameManager.startGame();
-            }
+    private void configureMenuActions(
+            GameManager gameManager) {
 
-            mouseControl.setEnabled(true);
-            scorePanel.updateStatus("Running");
+        // Start / Resume
+        menuBar
+                .getStartButton()
+                .setOnAction(event -> {
 
-            menuBar.updateButtonState(
-                    gameManager.getCurrentState()
-            );
-        });
+                    GameState currentState =
+                            gameManager
+                                    .getCurrentState();
 
-        menuBar.getPauseButton().setOnAction(event -> {
-            gameManager.pauseGame();
+                    /*
+                     * 如果当前是暂停状态，
+                     * 这里只恢复游戏，
+                     * 不重新启动波次计时。
+                     */
+                    if (currentState
+                            == GameState.PAUSED) {
 
-            mouseControl.setEnabled(false);
-            scorePanel.updateStatus("Paused");
+                        gameManager
+                                .resumeGame();
+                    }
 
-            menuBar.updateButtonState(
-                    gameManager.getCurrentState()
-            );
-        });
+                    /*
+                     * 如果当前是 Ready，
+                     * 才是真正第一次开始游戏。
+                     */
+                    else if (currentState
+                            == GameState.READY) {
 
-        menuBar.getRestartButton().setOnAction(event -> {
-            gameManager.resetGame();
-            gameAnimation.reset();
+                        gameManager
+                                .startGame();
 
-            animalPanel.clearSelection();
+                        /*
+                         * 从玩家点击 Start 的这一刻
+                         * 开始计算第一波敌人的时间。
+                         */
+                        gameManager
+                                .getWaveManager()
+                                .startWaveTimer();
+                    }
 
-            animalPanel.updateButtonsAvailability(
-                    gameManager.getResourceManager().getFruitCount()
-            );
+                    mouseControl
+                            .setEnabled(true);
 
-            scorePanel.updateFruits(
-                    gameManager.getResourceManager().getFruitCount()
-            );
+                    scorePanel
+                            .updateStatus(
+                                    "Running"
+                            );
 
-            scorePanel.updateWave(
-                    gameManager.getWaveManager().getCurrentWave(),
-                    gameManager.getWaveManager().getMaxWave()
-            );
+                    menuBar
+                            .updateButtonState(
+                                    gameManager
+                                            .getCurrentState()
+                            );
+                });
 
-            scorePanel.updateKills(0);
-            scorePanel.updateStatus("Ready");
+        // Pause
+        menuBar
+                .getPauseButton()
+                .setOnAction(event -> {
 
-            scorePanel.updateEggStatus(
-                    gameManager.getGameWorld().getEgg().isAlive()
-            );
+                    gameManager
+                            .pauseGame();
 
-            gameCanvas.redraw(
-                    gameManager.getGameWorld()
-            );
+                    mouseControl
+                            .setEnabled(false);
 
-            mouseControl.setEnabled(true);
+                    scorePanel
+                            .updateStatus(
+                                    "Paused"
+                            );
 
-            menuBar.updateButtonState(
-                    gameManager.getCurrentState()
-            );
-        });
+                    menuBar
+                            .updateButtonState(
+                                    gameManager
+                                            .getCurrentState()
+                            );
+                });
 
-        menuBar.getExitButton().setOnAction(event -> {
-            gameAnimation.stop();
-            Platform.exit();
-        });
+        // Restart
+        menuBar
+                .getRestartButton()
+                .setOnAction(event -> {
+
+                    gameManager
+                            .resetGame();
+
+                    gameAnimation
+                            .reset();
+
+                    animalPanel
+                            .clearSelection();
+
+                    animalPanel
+                            .updateButtonsAvailability(
+                                    gameManager
+                                            .getResourceManager()
+                                            .getFruitCount()
+                            );
+
+                    scorePanel
+                            .updateFruits(
+                                    gameManager
+                                            .getResourceManager()
+                                            .getFruitCount()
+                            );
+
+                    scorePanel
+                            .updateWave(
+                                    gameManager
+                                            .getWaveManager()
+                                            .getCurrentWave(),
+                                    gameManager
+                                            .getWaveManager()
+                                            .getMaxWave()
+                            );
+
+                    scorePanel
+                            .updateKills(0);
+
+                    scorePanel
+                            .updateStatus(
+                                    "Ready"
+                            );
+
+                    scorePanel
+                            .updateEggStatus(
+                                    gameManager
+                                            .getGameWorld()
+                                            .getEgg()
+                                            .isAlive()
+                            );
+
+                    gameCanvas
+                            .redraw(
+                                    gameManager
+                                            .getGameWorld()
+                            );
+
+                    mouseControl
+                            .setEnabled(true);
+
+                    menuBar
+                            .updateButtonState(
+                                    gameManager
+                                            .getCurrentState()
+                            );
+                });
+
+        // Exit
+        menuBar
+                .getExitButton()
+                .setOnAction(event -> {
+
+                    gameAnimation.stop();
+
+                    Platform.exit();
+                });
     }
 
     public Scene getScene() {
