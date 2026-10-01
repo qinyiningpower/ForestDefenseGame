@@ -5,8 +5,8 @@ import java.util.ArrayList;
 import com.forestdefense.base.GameConstant;
 import com.forestdefense.entity.Beast;
 import com.forestdefense.entity.Snake;
-import com.forestdefense.entity.Wolf;
 import com.forestdefense.entity.Tiger;
+import com.forestdefense.entity.Wolf;
 
 public class WaveManager {
 
@@ -28,22 +28,25 @@ public class WaveManager {
     // 波次计时是否已经开始
     private boolean timerStarted;
 
+    // 是否处于暂停状态
+    private boolean timerPaused;
+
+    // 开始暂停的时间
+    private long pauseStartTime;
+
     public WaveManager() {
 
         this.currentLevel = 1;
         this.currentWave = 0;
         this.maxWave = GameConstant.SIMPLE_WAVES;
 
-        // GameConstant.WAVE_INTERVAL 单位是秒，这里转换成毫秒
         this.waveInterval =
                 (long) (GameConstant.WAVE_INTERVAL * 1000);
 
-        /*
-         * 游戏创建时先不开始计算波次时间。
-         * 真正点击 Start 后再调用 startWaveTimer()。
-         */
         this.lastWaveTime = 0;
         this.timerStarted = false;
+        this.timerPaused = false;
+        this.pauseStartTime = 0;
     }
 
     // 设置当前关卡
@@ -52,9 +55,10 @@ public class WaveManager {
         this.currentLevel = level;
         this.currentWave = 0;
 
-        // 切换关卡后重新等待游戏开始
         this.lastWaveTime = 0;
         this.timerStarted = false;
+        this.timerPaused = false;
+        this.pauseStartTime = 0;
 
         if (level == 1) {
 
@@ -69,7 +73,7 @@ public class WaveManager {
     }
 
     /**
-     * 从玩家真正开始游戏时启动波次计时。
+     * 玩家第一次点击 Start 时启动波次计时。
      */
     public void startWaveTimer() {
 
@@ -81,13 +85,54 @@ public class WaveManager {
                 System.currentTimeMillis();
 
         timerStarted = true;
+        timerPaused = false;
+    }
+
+    /**
+     * 游戏暂停时暂停波次计时。
+     */
+    public void pauseTimer() {
+
+        if (!timerStarted || timerPaused) {
+            return;
+        }
+
+        pauseStartTime =
+                System.currentTimeMillis();
+
+        timerPaused = true;
+    }
+
+    /**
+     * 游戏恢复时补偿暂停时间，
+     * 使暂停期间不计入波次间隔。
+     */
+    public void resumeTimer() {
+
+        if (!timerStarted || !timerPaused) {
+            return;
+        }
+
+        long currentTime =
+                System.currentTimeMillis();
+
+        long pausedDuration =
+                currentTime - pauseStartTime;
+
+        /*
+         * 把 lastWaveTime 往后推相同时间，
+         * 相当于暂停期间游戏时间没有流逝。
+         */
+        lastWaveTime += pausedDuration;
+
+        timerPaused = false;
+        pauseStartTime = 0;
     }
 
     // 判断当前是否可以生成下一波敌人
     public boolean canGenerateWave() {
 
-        // 游戏还没有正式开始时，不生成敌人
-        if (!timerStarted) {
+        if (!timerStarted || timerPaused) {
             return false;
         }
 
@@ -118,7 +163,6 @@ public class WaveManager {
             generateLevelTwoWave(beasts);
         }
 
-        // 这一波生成完成，从现在开始计算下一波时间
         lastWaveTime =
                 System.currentTimeMillis();
     }
@@ -127,10 +171,6 @@ public class WaveManager {
     private void generateLevelOneWave(
             ArrayList<Beast> beasts) {
 
-        /*
-         * GRID_COLS 表示棋盘最右侧边界，
-         * 敌人从棋盘右边进入。
-         */
         double spawnX =
                 GameConstant.GRID_COLS;
 
@@ -210,10 +250,6 @@ public class WaveManager {
     private void generateLevelTwoWave(
             ArrayList<Beast> beasts) {
 
-        /*
-         * 第二关难度更高：
-         * 敌人数量更多，并且老虎更早出现。
-         */
         double spawnX =
                 GameConstant.GRID_COLS;
 
