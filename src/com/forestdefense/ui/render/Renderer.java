@@ -27,8 +27,8 @@ public final class Renderer {
 
         drawEgg(gc, world);
         drawTraps(gc, world);
-        drawFruits(gc, world);
         drawAnimals(gc, world);
+        drawFruits(gc, world);
         drawBeasts(gc, world);
         drawBullets(gc, world);
     }
